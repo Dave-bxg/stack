@@ -44,6 +44,9 @@ export async function getProvider(provider: ProjectsCrud['Admin']['Read']['confi
   if (provider.type === 'shared') {
     const clientId = _getEnvForProvider(provider.id).clientId;
     const clientSecret = _getEnvForProvider(provider.id).clientSecret;
+    console.log();
+    console.log('clientId', clientId, clientSecret);
+    console.log();
     if (clientId === "MOCK") {
       if (clientSecret !== "MOCK") {
         throw new StackAssertionError("If OAuth provider client ID is set to MOCK, then client secret must also be set to MOCK");

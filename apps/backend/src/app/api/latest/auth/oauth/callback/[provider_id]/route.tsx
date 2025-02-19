@@ -126,6 +126,8 @@ const handler = createSmartRouteHandler({
       }
 
       const provider = tenancy.config.oauth_providers.find((p) => p.id === params.provider_id);
+      console.log('provider', provider, params);
+
       if (!provider || !provider.enabled) {
         throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
       }

@@ -40,6 +40,7 @@ export const GET = createSmartRouteHandler({
       client_id: yupString().defined(),
       client_secret: yupString().defined(),
       redirect_uri: urlSchema.defined(),
+      //redirect_uri: yupString().defined(),
       scope: yupString().defined(),
       state: yupString().defined(),
       grant_type: yupString().oneOf(["authorization_code"]).defined(),
@@ -102,6 +103,8 @@ export const GET = createSmartRouteHandler({
       extraScope: query.provider_scope,
     });
 
+    console.log('query', query);
+
     await prismaClient.oAuthOuterInfo.create({
       data: {
         innerState,
@@ -128,6 +131,7 @@ export const GET = createSmartRouteHandler({
 
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
+    console.log('innerState', innerState);
     (await cookies()).set(
       "stack-oauth-inner-" + innerState,
       "true",

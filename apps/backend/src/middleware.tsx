@@ -46,6 +46,7 @@ const corsAllowedResponseHeaders = [
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
+  console.log('in middleware', request.url);
   const delay = +getEnvVariable('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS', '0');
   if (delay) {
     if (getNodeEnvironment().includes('production')) {

@@ -8,6 +8,7 @@ export function oauthResponseToSmartResponse(oauthResponse: OAuthResponse): Smar
   } else if (oauthResponse.status >= 500 && oauthResponse.status < 600) {
     throw new StackAssertionError(`OAuth server error: ${JSON.stringify(oauthResponse.body)}`, { oauthResponse });
   } else if (oauthResponse.status >= 200 && oauthResponse.status < 500) {
+    console.log('oauthResponseToSmartResponse', oauthResponse);
     return {
       statusCode: {
         // our API never returns 301 or 302 by convention, so transform them to 307 or 308

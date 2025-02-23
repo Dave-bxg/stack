@@ -84,6 +84,16 @@ const handler = createSmartRouteHandler({
     const cookieInfo = (await cookies()).get("stack-oauth-inner-" + innerState);
     (await cookies()).delete("stack-oauth-inner-" + innerState);
 
+    console.log();
+    console.log('CALLBACK START -----------------------------------------------------------------------------------------------------------');
+    console.log('cookieInfo', cookieInfo);
+    console.log('innerState', innerState);
+    console.log('query', query);
+    console.log('body', body);
+    console.log('params', params);
+    console.log('CALLBACK END -----------------------------------------------------------------------------------------------------------');
+    console.log();
+
     if (cookieInfo?.value !== 'true') {
       throw new StatusError(StatusError.BadRequest, "Inner OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again");
     }
@@ -114,6 +124,8 @@ const handler = createSmartRouteHandler({
       errorRedirectUrl,
       afterCallbackRedirectUrl,
     } = outerInfo;
+
+    console.log('outerInfo', outerInfo);
 
     const tenancy = await getTenancy(tenancyId);
     if (!tenancy) {
@@ -151,6 +163,8 @@ const handler = createSmartRouteHandler({
       }
 
       const { userInfo, tokenSet } = callbackResult;
+
+      console.log('callbackResult', callbackResult);
 
       if (type === "link") {
         if (!projectUserId) {
@@ -225,6 +239,7 @@ const handler = createSmartRouteHandler({
       };
 
       const oauthResponse = new OAuthResponse();
+      console.log('oauthResponse', oauthResponse);
       try {
         await oauthServer.authorize(
           oauthRequest,
@@ -275,9 +290,11 @@ const handler = createSmartRouteHandler({
                 } else {
 
                   // ========================== sign in user ==========================
+                  console.log('sign in user', afterCallbackRedirectUrl);
 
                   if (oldAccount) {
                     await storeTokens();
+                    console.log('sign in user', oldAccount);
 
                     return {
                       id: oldAccount.projectUserId,
@@ -399,6 +416,7 @@ const handler = createSmartRouteHandler({
                   });
 
                   await storeTokens();
+                  console.log('signup user', afterCallbackRedirectUrl);
                   return {
                     id: newAccount.id,
                     newUser: true,

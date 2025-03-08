@@ -97,13 +97,22 @@ export const GET = createSmartRouteHandler({
     const innerCodeVerifier = generators.codeVerifier();
     const innerState = generators.state();
     const providerObj = await getProvider(provider);
+
+    /*
+    //console.log();
+    //console.log('--------------------------------');
+    //console.log(new Date().toISOString(), 'INITIAL CODE VERIFIER', innerCodeVerifier);
+    //console.log('--------------------------------');
+    //console.log();
+    */
+
     const oauthUrl = providerObj.getAuthorizationUrl({
       codeVerifier: innerCodeVerifier,
       state: innerState,
       extraScope: query.provider_scope,
     });
 
-    console.log('query', query);
+    //console.log('query', query);
 
     await prismaClient.oAuthOuterInfo.create({
       data: {
@@ -131,7 +140,6 @@ export const GET = createSmartRouteHandler({
 
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
-    console.log('innerState', innerState);
     (await cookies()).set(
       "stack-oauth-inner-" + innerState,
       "true",

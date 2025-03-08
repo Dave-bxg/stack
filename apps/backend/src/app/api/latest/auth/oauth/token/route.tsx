@@ -34,6 +34,16 @@ export const POST = createSmartRouteHandler({
     });
 
 
+    console.log();
+    console.log('--------------------------------');
+    ///console.log("oauthRequest", oauthRequest);
+    console.log('fullReq headers', fullReq.headers);
+    console.log('fullReq body', fullReq.body);
+    console.log('fullReq query', fullReq.query);
+    console.log('fullReq method', fullReq.method);
+    console.log();
+    console.log('--------------------------------');
+    console.log();
     const oauthResponse = new OAuthResponse();
     try {
       await oauthServer.token(

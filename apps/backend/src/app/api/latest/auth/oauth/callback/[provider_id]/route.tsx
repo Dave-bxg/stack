@@ -125,7 +125,11 @@ const handler = createSmartRouteHandler({
       afterCallbackRedirectUrl,
     } = outerInfo;
 
-    console.log('outerInfo', outerInfo);
+    console.log();
+    console.log('--------------------------------');
+    console.log(new Date().toISOString(), 'OUTER INFO CALLBACK', outerInfo);
+    console.log('--------------------------------');
+    console.log();
 
     const tenancy = await getTenancy(tenancyId);
     if (!tenancy) {

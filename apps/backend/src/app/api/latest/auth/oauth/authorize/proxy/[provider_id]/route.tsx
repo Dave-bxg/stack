@@ -112,7 +112,7 @@ export const GET = createSmartRouteHandler({
       extraScope: query.provider_scope,
     });
 
-    //console.log('query', query);
+    console.log('query', query);
 
     await prismaClient.oAuthOuterInfo.create({
       data: {
@@ -147,8 +147,16 @@ export const GET = createSmartRouteHandler({
         httpOnly: true,
         secure: getNodeEnvironment() !== "development",
         maxAge: 60 * outerOAuthFlowExpirationInMinutes,
+        path: "/",
+        sameSite: "lax"
       }
     );
+
+    console.log('cookies', (await cookies()).getAll());
+
+    console.log();
+    console.log('oauthUrl', oauthUrl);
+    console.log();
 
     return {
       body: { url: oauthUrl },

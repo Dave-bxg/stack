@@ -67,6 +67,7 @@ export const POST = createSmartRouteHandler({
         }
       }
       if (e instanceof InvalidClientError) {
+        console.log("Invalid OAuth client id or secret", e);
         throw new KnownErrors.InvalidOAuthClientIdOrSecret();
       }
       if (e instanceof InvalidRequestError) {

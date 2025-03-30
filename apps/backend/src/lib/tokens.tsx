@@ -96,6 +96,8 @@ export async function generateAccessToken(options: {
     }
   );
 
+  console.log("setting expiration time to", getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min"));
+
   return await signJWT({
     issuer: jwtIssuer,
     audience: options.tenancy.project.id,

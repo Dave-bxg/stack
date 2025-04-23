@@ -8,3 +8,6 @@ pnpm install
 pnpm build:packages
 pnpm codegen
 pnpm start-deps
+#
+ docker build -t bluntworks/stackauth:latest -f docker/server/Dockerfile .
+ docker push  bluntworks/stackauth:latest

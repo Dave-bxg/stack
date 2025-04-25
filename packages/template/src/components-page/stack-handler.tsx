@@ -84,7 +84,7 @@ function renderComponent(props: {
   switch (path) {
     case availablePaths.signIn: {
       if (user) {
-        redirect(app.urls.afterSignIn);
+        redirect(app.urls.afterSignIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('signIn');
       return <SignIn
@@ -95,7 +95,7 @@ function renderComponent(props: {
     }
     case availablePaths.signUp: {
       if (user) {
-        redirect(app.urls.afterSignUp);
+        redirect(app.urls.afterSignUp); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('signUp');
       return <SignUp
@@ -114,7 +114,7 @@ function renderComponent(props: {
     }
     case availablePaths.passwordReset: {
       if (user) {
-        redirect(app.urls.afterSignIn);
+        redirect(app.urls.afterSignIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('passwordReset');
       return <PasswordReset
@@ -125,7 +125,7 @@ function renderComponent(props: {
     }
     case availablePaths.forgotPassword: {
       if (user) {
-        redirect(app.urls.afterSignIn);
+        redirect(app.urls.afterSignIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('forgotPassword');
       return <ForgotPassword
@@ -135,7 +135,7 @@ function renderComponent(props: {
     }
     case availablePaths.signOut: {
       if (!user) {
-        redirect(app.urls.signIn);
+        redirect(app.urls.signIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('signOut');
       return <SignOut
@@ -145,7 +145,7 @@ function renderComponent(props: {
     }
     case availablePaths.oauthCallback: {
       if (user) {
-        redirect(app.urls.afterSignIn);
+        redirect(app.urls.afterSignIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('oauthCallback');
       return <OAuthCallback
@@ -155,7 +155,7 @@ function renderComponent(props: {
     }
     case availablePaths.magicLinkCallback: {
       if (user) {
-        redirect(app.urls.afterSignIn);
+        redirect(app.urls.afterSignIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('magicLinkCallback');
       return <MagicLinkCallback
@@ -174,7 +174,7 @@ function renderComponent(props: {
     }
     case availablePaths.accountSettings: {
       if (!user) {
-        redirect(app.urls.signIn);
+        redirect(app.urls.signIn); // THIS_LINE_PLATFORM next
       }
       redirectIfNotHandler?.('accountSettings');
       return <AccountSettings

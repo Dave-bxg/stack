@@ -304,6 +304,25 @@ export async function seed() {
 
     if (oldAdminUser) {
       console.log(`Admin user already exists, skipping creation`);
+
+      // Ensure team membership exists for existing admin if internal access is enabled
+      if (adminInternalAccess) {
+        await internalPrisma.teamMember.upsert({
+          where: {
+            tenancyId_projectUserId_teamId: {
+              tenancyId: internalTenancy.id,
+              projectUserId: defaultUserId,
+              teamId: internalTeamId,
+            },
+          },
+          update: {},
+          create: {
+            tenancyId: internalTenancy.id,
+            teamId: internalTeamId,
+            projectUserId: defaultUserId,
+          },
+        });
+      }
     } else {
       const newUser = await internalPrisma.projectUser.create({
         data: {
@@ -379,12 +398,15 @@ export async function seed() {
       }
     }
 
-    await grantTeamPermission(internalPrisma, {
-      tenancy: internalTenancy,
-      teamId: internalTeamId,
-      userId: defaultUserId,
-      permissionId: "team_admin",
-    });
+    // Only grant permission if internal access is enabled (team member exists)
+    if (adminInternalAccess) {
+      await grantTeamPermission(internalPrisma, {
+        tenancy: internalTenancy,
+        teamId: internalTeamId,
+        userId: defaultUserId,
+        permissionId: "team_admin",
+      });
+    }
   }
 
   if (emulatorEnabled) {

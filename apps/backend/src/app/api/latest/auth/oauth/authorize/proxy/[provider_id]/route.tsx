@@ -6,9 +6,7 @@ import { globalPrismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { cookies } from "next/headers";
 import { generators } from "openid-client";
 import * as yup from "yup";
 
@@ -99,22 +97,18 @@ export const GET = createSmartRouteHandler({
     const innerState = generators.state();
     const providerObj = await getProvider(provider);
 
-    /*
-    //console.log();
-    //console.log('--------------------------------');
-    //console.log(new Date().toISOString(), 'INITIAL CODE VERIFIER', innerCodeVerifier);
-    //console.log('--------------------------------');
-    //console.log();
-    */
-
     const oauthUrl = providerObj.getAuthorizationUrl({
       codeVerifier: innerCodeVerifier,
       state: innerState,
       extraScope: query.provider_scope,
     });
 
-    console.log('query', query);
-
+    // Store OAuth state in database - this is the source of truth for validation
+    // Note: Cookie-based CSRF protection is not used for proxy flows because:
+    // - Next.js 16 bug: cookies().set() fails with custom Response objects
+    // - Proxy flows: cookie domain mismatch between gaming-api and Stack Auth
+    // - Capacitor apps: in-app browsers don't share cookies
+    // The database record + cryptographic state parameter provide sufficient CSRF protection
     await globalPrismaClient.oAuthOuterInfo.create({
       data: {
         innerState,
@@ -138,26 +132,6 @@ export const GET = createSmartRouteHandler({
         expiresAt: new Date(Date.now() + 1000 * 60 * outerOAuthFlowExpirationInMinutes),
       },
     });
-
-    // prevent CSRF by keeping track of the inner state in cookies
-    // the callback route must ensure that the inner state cookie is set
-    (await cookies()).set(
-      "stack-oauth-inner-" + innerState,
-      "true",
-      {
-        httpOnly: true,
-        secure: getNodeEnvironment() !== "development",
-        maxAge: 60 * outerOAuthFlowExpirationInMinutes,
-        path: "/",
-        sameSite: "lax"
-      }
-    );
-
-    console.log('cookies', (await cookies()).getAll());
-
-    console.log();
-    console.log('oauthUrl', oauthUrl);
-    console.log();
 
     return {
       body: { url: oauthUrl },

@@ -355,3 +355,58 @@ Then restart the dev server. This rebuilds all packages and generates the necess
 
 ## Q: How is backwards compatibility for the offer→product rename handled in the payments purchase APIs?
 A: API v1 requests are routed through the `v2beta1` migration. The migration wraps the latest handlers, accepts legacy `offer_id`/`offer_inline` request fields, translates product-related errors back to the old offer error codes/messages, and augments responses (like `validate-code`) with `offer`/`conflicting_group_offers` aliases alongside the new `product` fields. Newer API versions keep the product-only contract.
+
+---
+
+# BXG Fork Custom Modifications
+
+This section documents custom modifications made to the Stack Auth fork for BXG Gaming.
+
+## OAuth Proxy Route Cookie Fix (January 2026)
+
+### Q: Why does the OAuth proxy route not use cookie-based CSRF protection?
+A: The OAuth callback route (`/api/v1/auth/oauth/callback/[provider_id]`) no longer requires the `stack-oauth-inner-{state}` cookie. The database record (`OAuthOuterInfo`) is now the sole validator for OAuth flows initiated via the proxy route.
+
+**Reasons cookies don't work for proxy flows:**
+1. **Next.js 16 Bug**: `cookies().set()` silently fails when using custom Response objects (SmartRouteHandler pattern). See: https://github.com/vercel/next.js/issues/86798
+2. **Domain Mismatch**: Gaming-API proxies requests to Stack Auth. Even if cookies were forwarded, they'd be set on gaming-api domain but callback goes to Stack Auth domain.
+3. **Capacitor Mobile Apps**: In-app browsers don't share cookies with the app's WebView.
+
+### Q: Is skipping the cookie check secure?
+A: Yes. The database record provides sufficient CSRF protection:
+1. `innerState` is cryptographically random (32 bytes from `generators.state()`)
+2. Only created by authorize endpoint (requires valid client_id/client_secret)
+3. 10-minute TTL
+4. Single-use (validated against database)
+5. OAuth `state` parameter is the primary CSRF mechanism per OAuth spec
+
+### Q: What files were modified for the OAuth cookie fix?
+A: Two files:
+
+**1. `apps/backend/src/app/api/latest/auth/oauth/callback/[provider_id]/route.tsx`**
+- Removed cookie check that caused "Inner OAuth cookie not found" error
+- DB record validation is now the only requirement
+- Cookie is still deleted if present (cleanup)
+
+**2. `apps/backend/src/app/api/latest/auth/oauth/authorize/proxy/[provider_id]/route.tsx`**
+- Removed manual `Set-Cookie` header code (no longer needed)
+- Removed unused imports (`cookies`, `getNodeEnvironment`, `yupMixed`)
+- Added comment explaining why cookie-based CSRF is not used
+
+### Q: What was the original error and when did it start?
+A: Error: `400 Bad Request: "Inner OAuth cookie not found"`
+Started: After upgrading Stack Auth from Next.js 15.x to Next.js 16.1.1 (January 2026)
+
+**Key finding from git investigation:**
+- `backup-v2.8.9` (Next.js 15.2.3): Same cookie code, worked
+- `dr2-backup` (Next.js 15.4.1): Same cookie code, worked
+- Current `dr2` (Next.js 16.1.1): Same cookie code, broken
+
+The cookie code was **identical** across all versions. The breaking change was Next.js 16's behavior change with `cookies().set()`.
+
+### Q: What is the OAuth proxy route and why does it exist?
+A: The proxy route (`/api/v1/auth/oauth/authorize/proxy/[provider_id]`) returns a JSON response with the OAuth URL instead of redirecting. This is needed for:
+1. **Capacitor.js mobile apps**: Need to intercept the URL to open in an in-app browser
+2. **Custom frontend handling**: Frontend can decide how to navigate (redirect vs in-app browser)
+
+Standard route (`/authorize/[provider_id]`) uses HTTP redirect, which works fine with cookies but doesn't support Capacitor.

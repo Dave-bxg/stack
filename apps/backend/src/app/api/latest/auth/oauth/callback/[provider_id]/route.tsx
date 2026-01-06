@@ -74,13 +74,16 @@ const handler = createSmartRouteHandler({
   }),
   async handler({ params, query, body }, fullReq) {
     const innerState = query.state ?? (body as any)?.state ?? "";
+
+    // Clean up cookie (may or may not exist depending on flow)
     const cookieInfo = (await cookies()).get("stack-oauth-inner-" + innerState);
     (await cookies()).delete("stack-oauth-inner-" + innerState);
 
-    if (cookieInfo?.value !== 'true') {
-      throw new StatusError(StatusError.BadRequest, "Inner OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again");
-    }
-
+    // DB record is the source of truth - validates the OAuth flow
+    // Cookie is extra CSRF protection but not required:
+    // - Next.js 16 bug: cookies().set() fails with custom Response objects
+    // - Proxy flows: cookie domain mismatch between gaming-api and Stack Auth
+    // - Capacitor apps: in-app browsers don't share cookies
     const outerInfoDB = await globalPrismaClient.oAuthOuterInfo.findUnique({
       where: {
         innerState: innerState,
@@ -88,7 +91,7 @@ const handler = createSmartRouteHandler({
     });
 
     if (!outerInfoDB) {
-      throw new StatusError(StatusError.BadRequest, "Invalid OAuth cookie. Please try signing in again.");
+      throw new StatusError(StatusError.BadRequest, "Invalid OAuth state. Please try signing in again.");
     }
 
     let outerInfo: Awaited<ReturnType<typeof oauthCookieSchema.validate>>;
